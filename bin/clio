@@ -1,0 +1,13 @@
+#!/usr/bin/env perl
+
+use Clio;
+
+my $config_file = $ENV{CLIO_CONFIG} || "./clio.conf";
+
+Clio->new->run(
+    config_file => $config_file,
+);
+
+
+exit 0;
+
