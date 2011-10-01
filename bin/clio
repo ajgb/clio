@@ -4,9 +4,9 @@ use Clio;
 
 my $config_file = $ENV{CLIO_CONFIG} || "./clio.conf";
 
-Clio->new->run(
+Clio->new(
     config_file => $config_file,
-);
+)->run;
 
 
 exit 0;

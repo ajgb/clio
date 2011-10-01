@@ -28,25 +28,31 @@ has '_logger' => (
     init_arg => undef,
 );
 
-sub run {
-    my ($self, %args) = @_;
+sub _init_config {
+    my ($self, $config_file) = @_;
 
     my $config = Clio::Config->new(
-        config_file => $args{config_file}
+        config_file => $config_file
     );
 #    print Dumper($config);
 
     $self->config( $config );
 
     $self->config->process;
+}
+
+sub _init_logger {
+    my $self = shift;
 
     my $logger_class = $self->config->logger_class;
     my $logger = $logger_class->new(
         c => $self,
     );
     $self->_logger( $logger );
+}
 
-    $self->_become_user_group();
+sub _init_proc_manager {
+    my $self = shift;
 
     my $proc_mngr = Clio::ProcessManager->new(
         c => $self,
@@ -55,6 +61,10 @@ sub run {
     $self->process_manager( $proc_mngr );
 
     $self->process_manager->start;
+}
+
+sub _init_server {
+    my $self = shift;
 
     my $server_class = $self->config->server_class;
 
@@ -63,8 +73,27 @@ sub run {
             c => $self,
         )
     );
+}
+
+sub BUILD {
+    my ($self, $args) = @_;
+
+    $self->_init_config( $args->{config_file} );
+
+    $self->_init_logger;
+
+    $self->_become_user_group();
+
+    $self->_init_proc_manager;
+
+    $self->_init_server;
+};
+
+sub run {
+    my $self = shift;
 
     $self->log->debug("About to start");
+
     $self->server->start;
 };
 
