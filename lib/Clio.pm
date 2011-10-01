@@ -68,6 +68,7 @@ sub run {
     $self->server->start;
 };
 
+
 sub log {
     my $self = shift;
     my $caller = shift || caller();
@@ -78,21 +79,25 @@ sub log {
 sub _become_user_group {
     my $self = shift;
 
-    my ($user, $group) = @{ $self->config->run_as_user_group };
-    $user = (getpwuid($<))[0] unless defined $user;
+    my $log_method;
 
+    my ($user, $group) = @{ $self->config->run_as_user_group };
+
+    # set user
+    $user = (getpwuid($<))[0] unless defined $user;
     my $uid = $user =~ /\A\d+\z/ ? $user : getpwnam($user);
 
-    $self->log->debug("Setting user to $uid");
-
     $< = $> = $uid;
+    $log_method = $! ? "error" : "debug";
+    $self->log->$log_method("Setting user to $uid", ( $! ? " failed: $!" : ''));
 
+    # set group
     $group = (getpwuid($<))[3] unless defined $group;
     my $gid = $group =~ /\A\d+\z/ ? $group : getgrnam($group);
 
-    $self->log->debug("Setting group to $gid");
-
     $( = $) = $gid;
+    $log_method = $! ? "error" : "debug";
+    $self->log->$log_method("Setting group to $gid", ( $! ? " failed: $!" : ''));
 }
 
 1;
