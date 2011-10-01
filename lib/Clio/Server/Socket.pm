@@ -39,7 +39,7 @@ sub start {
             $client->attach_to_process( $process );
             $process->add_client( $client );
         } else {
-            $client->write("No engines available($uuid)\r\n");
+            $client->write("Too many connections\r\n");
             $clients_manager->disconnect_client( $client->id );
         }
     };
