@@ -82,7 +82,7 @@ sub BUILD {
 
     $self->_init_logger;
 
-    $self->_become_user_group();
+    $self->_set_user_group();
 
     $self->_init_proc_manager;
 
@@ -105,7 +105,7 @@ sub log {
     $self->_logger->logger($caller);
 }
 
-sub _become_user_group {
+sub _set_user_group {
     my $self = shift;
 
     my $log_method;
