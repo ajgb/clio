@@ -18,6 +18,11 @@ has 'process_manager' => (
     init_arg => undef,
 );
 
+has 'server' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
 has '_logger' => (
     is => 'rw',
     init_arg => undef,
@@ -53,12 +58,14 @@ sub run {
 
     my $server_class = $self->config->server_class;
 
-    my $server = $server_class->new(
-        c => $self,
+    $self->server(
+        $server_class->new(
+            c => $self,
+        )
     );
 
     $self->log->debug("About to start");
-    $server->start;
+    $self->server->start;
 };
 
 sub log {

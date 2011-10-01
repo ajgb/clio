@@ -42,11 +42,13 @@ sub start {
             on_error  => sub {
                 my ($handle, $fatal, $msg) = @_;
                 $log->fatal("Process ", $self->id, " error: $msg");
+                $self->manager->stop_process( $self->id );
             },
             on_eof  => sub {
                 my ($handle) = @_;
                 my $eid = $self->id;
                 $log->fatal("** [$eid]->ON_EOF **");
+                $self->manager->stop_process( $self->id );
             },
         )
     );
@@ -69,7 +71,11 @@ sub start {
 sub stop {
     my $self = shift;
     
-    $self->log->debug("Process ", $self->id, " stopped");
+    $self->log->debug("Stopping process ", $self->id);
+
+    my $cm = $self->manager->c->server->clients_manager;
+
+    $cm->disconnect_client($_) for keys %{ $self->_clients };
 
     $self->_handle->destroy;
     $self->_handle(undef);

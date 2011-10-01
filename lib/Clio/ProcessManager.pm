@@ -123,9 +123,7 @@ sub _idle_processes_maintenance {
         my $proc = $self->processes->{$uuid};
 
         if ( $proc->is_idle && ++$cur_idle > $max_idle ) {
-            $proc->stop;
-
-            delete $self->processes->{$uuid};
+            $self->stop_process($proc->id);
         }
     }
     $log->debug("Stopped ", ($cur_idle - $max_idle)," idle processes")
@@ -137,6 +135,16 @@ sub _idle_processes_maintenance {
     );
 }
 
+sub stop_process {
+    my ($self, $process_id) = @_;
+
+    $self->c->log->debug("Stopping process $process_id");
+
+    $self->processes->{ $process_id }->stop;
+
+    delete $self->processes->{ $process_id };
+
+}
 
 1;
 
