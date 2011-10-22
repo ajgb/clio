@@ -10,6 +10,56 @@ use Carp qw( croak );
 with 'Clio::Role::HasContext';
 with 'Clio::Role::UUIDMaker';
 
+=head1 SYNPOSIS
+
+    my $process_manager = Clio::ProcessManager->new(
+        c => $context,
+    );
+
+Process manager is created on application start and manages all processes
+(L<Clio::Process>).
+
+Based on the configuration starts new listening processes and stops the idle
+ones.
+
+=over 4
+
+=item * StartCommands
+
+Number of processes created at the application start.
+
+=item * MinSpareCommands
+
+Minimum number of idle processes.
+
+=item * MaxSpareCommands
+
+Maximum number of idle processes.
+
+=item * MaxCommands
+
+Maximum number of commands running at the same time.
+
+=item * MaxClientsPerCommand
+
+Maximum number of clients per process.
+
+=back
+
+Consumes the L<Clio::Role::HasContext> and the L<Clio::Role::UUIDMaker>.
+
+=cut
+
+=attr processes
+
+    while ( my ($id, $process) = each %{ $process_manager->processes } ) {
+        print "Process $id is", ( $process->is_idle ? '' : ' not'), " idle\n";
+    }
+
+All managed processes.
+
+=cut
+
 has 'processes' => (
     is => 'ro',
     default => sub { +{} },
@@ -30,6 +80,15 @@ has '_check_idle_loop' => (
         );
     },
 );
+
+=method start
+
+    $process_manager->start;
+
+Starts a number of processes equal to C<StartCommands> and creates the idle
+processes maintanace loop.
+
+=cut
 
 sub start {
     my $self = shift;
@@ -84,8 +143,7 @@ sub get_first_available {
     my $config = $self->c->config->CommandConfig;
     my $log = $self->c->log;
 
-    for my $uuid ( keys %{ $self->processes } ) {
-        my $proc = $self->processes->{$uuid};
+    while ( my ($uuid, $proc) =  each %{ $self->processes } ) {
         if ( ! $config->{MaxClientsPerCommand} ) {
             return $proc;
         }

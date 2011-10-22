@@ -8,6 +8,31 @@ use Scalar::Util qw( blessed );
 
 extends qw( Clio::Client );
 
+=head1 SYNOPSIS
+
+    <Server>
+        Class HTTP
+        <Client>
+            Class Stream
+            OutputFilter  LineEnd
+        </Client>
+    </Server>
+
+
+HTTP server with streaming (aka comet) capabilities.
+
+Process output is streamed directly to client - the above example can be used
+directly in a browser for read only data.
+
+To provide input POST with a C<message> as the key of incoming data.
+
+AJAX can be enabled with setting C<OutputFilter> to
+L<jQueryStream|Clio::ClientOutputFilter::jQueryStream>.
+
+Subclass of L<Clio::Client>.
+
+=cut
+
 has 'writer' => (
     is => 'rw',
 );

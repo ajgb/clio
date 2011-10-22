@@ -44,6 +44,7 @@ sub start {
         }
     };
 
+    $log->info("Started ", __PACKAGE__, " on $listen->{host}:$listen->{port}");
     AnyEvent->condvar->recv;
 }
 

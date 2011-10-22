@@ -17,12 +17,15 @@ with 'Clio::Role::UUIDMaker';
 sub start {
     my $self = shift;
 
-    my $config = $self->c->config;
+    my $listen = $self->c->config->server_host_port;
 
     my $twiggy = Twiggy::Server->new(
-        %{ $config->server_host_port }
+        %{ $listen }
     );
 
+    $self->c->log->info(
+        "Started ", __PACKAGE__, " on $listen->{host}:$listen->{port}"
+    );
     $twiggy->run( $self->build_app );
 }
 
