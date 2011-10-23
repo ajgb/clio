@@ -55,7 +55,17 @@ sub to_app {
         my $req = Plack::Request->new( $env );
         print Dumper($env);
 
-        if ( my $process = $self->c->process_manager->get_first_available ) {
+        my %proc_manager_args;
+        if ( $req->method eq 'POST' ) {
+            my $post_data = $req->body_parameters;
+            $proc_manager_args{client_id} = $post_data->{'metadata.id'}
+                if exists $post_data->{'metadata.id'};
+        }
+
+        my $process = $self->c->process_manager->get_first_available(
+            %proc_manager_args
+        );
+        if ( $process ) {
             $log->debug("got process: ". $process->id );
 
             my $uuid = $self->create_uuid;

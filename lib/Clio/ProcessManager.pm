@@ -138,10 +138,22 @@ sub create_process {
 }
 
 sub get_first_available {
-    my $self = shift;
+    my ($self, %args) = @_;
 
     my $config = $self->c->config->CommandConfig;
     my $log = $self->c->log;
+
+    if ( my $client_id = $args{client_id} ) {
+        my $clients_manager = $self->c->server->clients_manager;
+        if ( my $client = $clients_manager->clients->{ $client_id } ) {
+            if ( my $proc = $client->_process ) {
+                if ( exists $proc->_clients->{ $client_id } ) {
+                    $log->trace("Restored connection from client $client_id");
+                    return $proc;
+                }
+            }
+        }
+    }
 
     while ( my ($uuid, $proc) =  each %{ $self->processes } ) {
         if ( ! $config->{MaxClientsPerCommand} ) {
