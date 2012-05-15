@@ -21,14 +21,14 @@ Clients manager is created by L<Clio::Server> to manage incoming connections.
 Class used to create new client object is set by configuration key, eg:
 
     <Server>
-        Class Socket
+        Class TCP
         <Client>
             Class Handle
             ...
         </Client>
     </Server>
 
-would use L<Clio::Server::Socket::Client::Handle>.
+would use L<Clio::Server::TCP::Client::Handle>.
 
 Consumes the L<Clio::Role::HasContext>.
 
