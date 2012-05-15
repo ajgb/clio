@@ -1,5 +1,6 @@
 
 package Clio::Server::HTTP;
+# ABSTRACT: Base class for Clio HTTP Server (Plack based)
 
 use Moo;
 
@@ -13,6 +14,20 @@ use Data::Dumper;$Data::Dumper::Indent=1;
 extends qw( Clio::Server );
 
 with 'Clio::Role::UUIDMaker';
+
+=head1 DESCRIPTION
+
+Clio HTTP server.
+
+Consumes the L<Clio::Role::UUIDMaker>.
+
+Extends the L<Clio::Server>.
+
+=method start
+
+Start server and wait for incoming connections.
+
+=cut
 
 sub start {
     my $self = shift;
@@ -29,6 +44,13 @@ sub start {
     $twiggy->run( $self->build_app );
 }
 
+=method build_app
+
+Builds Plack application and optionally wrapps it with application specified
+in configuration (C<Builder>).
+
+=cut
+
 sub build_app {
     my $self = shift;
 
@@ -44,6 +66,12 @@ sub build_app {
     return $app;
 }
 
+=method to_app
+
+Creates Plack application.
+
+=cut
+
 sub to_app {
     my $self = shift;
 
@@ -56,8 +84,10 @@ sub to_app {
         print Dumper($env);
 
         my %proc_manager_args;
+        my $post_data;
         if ( $req->method eq 'POST' ) {
-            my $post_data = $req->body_parameters;
+            $post_data = $req->body_parameters;
+            print "post_data: ", Dumper($post_data), "\n";
             $proc_manager_args{client_id} = $post_data->{'metadata.id'}
                 if exists $post_data->{'metadata.id'};
         }
@@ -79,7 +109,9 @@ sub to_app {
 
             $client->attach_to_process( $process );
 
-            return $client->respond;
+            return $client->respond(
+                input => $post_data
+            );
         }
 
         return [ 503, [

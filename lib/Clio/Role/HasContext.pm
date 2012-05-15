@@ -1,5 +1,6 @@
 
 package Clio::Role::HasContext;
+# ABSTRACT: Role for providing context
 
 use Moo::Role;
 

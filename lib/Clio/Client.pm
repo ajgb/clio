@@ -1,12 +1,13 @@
 
 package Clio::Client;
+# ABSTRACT: Base class for Clio::Client::* implementations
 
 use Moo;
 use Carp qw( croak );
 
 with 'Clio::Role::HasManager';
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 Base class for I<Clio::Client::*> implementations.
 
@@ -93,6 +94,18 @@ sub disconnect {
     }
 
     $self->close;
+}
+
+=method restore
+
+=cut
+
+sub restore {
+    my ($self, %args) = @_;
+
+    $self->$_( $args{$_} ) for keys %args;
+
+    return $self;
 }
 
 1;

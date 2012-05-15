@@ -1,5 +1,6 @@
 
-package Clio::Server::Socket;
+package Clio::Server::TCP;
+# ABSTRACT: Base class for Clio TCP Server
 
 use Moo;
 
@@ -11,6 +12,20 @@ use Data::Dumper;$Data::Dumper::Indent=1;
 extends qw( Clio::Server );
 
 with 'Clio::Role::UUIDMaker';
+
+=head1 DESCRIPTION
+
+Clio TCP server.
+
+Consumes the L<Clio::Role::UUIDMaker>.
+
+Extends the L<Clio::Server>.
+
+=method start
+
+Start server and wait for incoming connections.
+
+=cut
 
 sub start {
     my $self = shift;

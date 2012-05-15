@@ -1,5 +1,6 @@
 
 package Clio::ProcessManager;
+# ABSTRACT: Process manager
 
 use Moo;
 
@@ -16,8 +17,14 @@ with 'Clio::Role::UUIDMaker';
         c => $context,
     );
 
+=head1 DESCRIPTION
+
 Process manager is created on application start and manages all processes
 (L<Clio::Process>).
+
+Consumes the L<Clio::Role::HasContext> and the L<Clio::Role::UUIDMaker>.
+
+=head1 CONFIGURATION
 
 Based on the configuration starts new listening processes and stops the idle
 ones.
@@ -46,17 +53,13 @@ Maximum number of clients per process.
 
 =back
 
-Consumes the L<Clio::Role::HasContext> and the L<Clio::Role::UUIDMaker>.
-
-=cut
-
 =attr processes
 
     while ( my ($id, $process) = each %{ $process_manager->processes } ) {
         print "Process $id is", ( $process->is_idle ? '' : ' not'), " idle\n";
     }
 
-All managed processes.
+Container for all managed processes.
 
 =cut
 
@@ -124,6 +127,14 @@ sub _start_num_processes {
     $cv->end;
 }
 
+=method create_process
+
+    $process_manager->create_process( $cmd );
+
+Create new L<Clio::Process>
+
+=cut
+
 sub create_process {
     my ($self, $cmd) = @_;
 
@@ -136,6 +147,14 @@ sub create_process {
         command => $cmd,
     );
 }
+
+=method get_first_available
+
+    $process_manager->get_first_available( %args );
+
+Based on configuration returns first idle process or if none are availble creates a new one.
+
+=cut
 
 sub get_first_available {
     my ($self, %args) = @_;
@@ -172,6 +191,14 @@ sub get_first_available {
     return;
 }
 
+=method total_count
+
+    my $num_processes = $process_manager->total_count();
+
+Returns number of managed processes.
+
+=cut
+
 sub total_count {
     my $self = shift;
 
@@ -204,6 +231,14 @@ sub _idle_processes_maintenance {
         $config->{Exec},
     );
 }
+
+=method stop_process
+    
+    my $stopped_process = $process_manager->stop_process( $process_id );
+
+Stops process and managing it.
+
+=cut
 
 sub stop_process {
     my ($self, $process_id) = @_;

@@ -1,5 +1,6 @@
 
 package Clio::ClientOutputFilter::jQueryStream;
+# ABSTRACT: Client output filter for jQueryStream
 
 use Moo::Role;
 

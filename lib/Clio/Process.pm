@@ -1,5 +1,6 @@
 
 package Clio::Process;
+# ABSTRACT: Process wrapper
 
 use Moo;
 
@@ -15,6 +16,8 @@ with 'Clio::Role::HasManager';
         id      => $uuid,
         command => $command,
     );
+
+=head1 DESCRIPTION
 
 All processes are managed by the L<Clio::ProcessManager>. Process runs the
 C<$command> and writes to the connected clients the command output.

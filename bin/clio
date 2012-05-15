@@ -8,6 +8,3 @@ Clio->new(
     config_file => $config_file,
 )->run;
 
-
-exit 0;
-

@@ -1,92 +1,89 @@
 
 package Clio;
+# ABSTRACT: Command Line Input/Output with sockets and HTTP
 
 use Moo;
 
 use Clio::Config;
 use Clio::ProcessManager;
 
-use Data::Dumper;$Data::Dumper::Indent=1;
+use DDP;
 
 has 'config' => (
-    is => 'rw',
+    is => 'lazy',
     init_arg => undef,
 );
 
 has 'process_manager' => (
-    is => 'rw',
+    is => 'lazy',
     init_arg => undef,
 );
 
 has 'server' => (
-    is => 'rw',
+    is => 'lazy',
     init_arg => undef,
 );
 
 has '_logger' => (
-    is => 'rw',
+    is => 'lazy',
     init_arg => undef,
+    builder => '_build_logger',
 );
 
-sub _init_config {
-    my ($self, $config_file) = @_;
+has 'config_file' => (
+    is => 'ro',
+    required => 1,
+);
+
+sub _build_config {
+    my $self = shift;
 
     my $config = Clio::Config->new(
-        config_file => $config_file
+        config_file => $self->config_file
     );
-#    print Dumper($config);
+#    print p($config);
 
-    $self->config( $config );
-
-    $self->config->process;
+    return $config;
 }
 
-sub _init_logger {
+sub _build_logger {
     my $self = shift;
 
     my $logger_class = $self->config->logger_class;
     my $logger = $logger_class->new(
         c => $self,
     );
-    $self->_logger( $logger );
+    return $logger;
 }
 
-sub _init_proc_manager {
+sub _build_process_manager {
     my $self = shift;
 
     my $proc_mngr = Clio::ProcessManager->new(
         c => $self,
     );
 
-    $self->process_manager( $proc_mngr );
-
-    $self->process_manager->start;
+    return $proc_mngr;
 }
 
-sub _init_server {
+sub _build_server {
     my $self = shift;
 
     my $server_class = $self->config->server_class;
 
-    $self->server(
-        $server_class->new(
-            c => $self,
-        )
+    return $server_class->new(
+        c => $self,
     );
 }
 
 sub BUILD {
-    my ($self, $args) = @_;
+    my $self = shift;
 
-    $self->_init_config( $args->{config_file} );
-
-    $self->_init_logger;
+    $self->config->process;
 
     $self->_set_user_group();
 
-    $self->_init_proc_manager;
-
-    $self->_init_server;
+    $self->process_manager->start;
 };
 
 sub run {

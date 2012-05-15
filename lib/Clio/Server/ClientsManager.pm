@@ -1,5 +1,6 @@
 
 package Clio::Server::ClientsManager;
+# ABSTRACT: Clients manager
 
 use Moo;
 use Carp qw( croak );
@@ -12,6 +13,8 @@ with 'Clio::Role::HasContext';
     my $clients_manager = Clio::Server::ClientsManager->new(
         c => $context,
     );
+
+=head1 DESCRIPTION
 
 Clients manager is created by L<Clio::Server> to manage incoming connections. 
 
@@ -59,12 +62,19 @@ Creates new managed client. Arguments are specific to the class.
 sub new_client {
     my ($self, %args) = @_;
 
+    my $uuid = delete $args{id};
+
+    if ( my $client = $self->clients->{ $uuid } ) {
+        return $client->restore( %args );
+    }
+
     my $client_class = $self->c->config->server_client_class;
     $self->c->log->debug("Creating new client, class of $client_class");
     Class::Load::load_class($client_class);
 
-    return $self->clients->{ $args{id} } = $client_class->new(
+    return $self->clients->{ $uuid } = $client_class->new(
         manager => $self,
+        id => $uuid,
         %args
     );
 }
@@ -91,7 +101,7 @@ sub disconnect_client {
 
     my $connected_clients = $clients_manager->total_count;
 
-Total number of managed clients.
+Total number of connected clients.
 
 =cut
 

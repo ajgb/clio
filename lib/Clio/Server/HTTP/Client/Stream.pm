@@ -1,5 +1,6 @@
 
 package Clio::Server::HTTP::Client::Stream;
+# ABSTRACT: Clio HTTP Client for streaming/comet connections
 
 use Moo;
 
@@ -8,7 +9,7 @@ use Scalar::Util qw( blessed );
 
 extends qw( Clio::Client );
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
     <Server>
         Class HTTP
@@ -29,7 +30,11 @@ To provide input POST with a C<message> as the key of incoming data.
 AJAX can be enabled with setting C<OutputFilter> to
 L<jQueryStream|Clio::ClientOutputFilter::jQueryStream>.
 
-Subclass of L<Clio::Client>.
+Extends of L<Clio::Client>.
+
+=attr writer
+
+Response callback writer 
 
 =cut
 
@@ -37,14 +42,26 @@ has 'writer' => (
     is => 'rw',
 );
 
+=attr req
+
+HTTP request
+
+=cut
+
 has 'req' => (
-    is => 'ro',
+    is => 'rw',
 );
+
+=method write
+
+Write client's message to process.
+
+=cut
 
 sub write {
     my $self = shift;
 
-    $self->log->trace("Client ", $self->id, " writing '@_'");
+    $self->log->trace("Stream Client ", $self->id, " writing '@_'");
 
     eval {
         $self->writer->write( @_ );
@@ -54,21 +71,26 @@ sub write {
     }
 }
 
-sub respond {
-    my $self = shift;
+=method respond
 
-    if ( $self->req->method eq 'POST' ) {
-        my $post_data = $self->req->body_parameters;
-#        print "post_data: ", Dumper($post_data), "\n";
-        my $message = $post_data->{message};
-#        print "input message: ", $message, "\n";
+Returns response callback for handling client communication.
+
+Note: POST requests (inputs for process) are separate connections.
+
+=cut
+
+
+sub respond {
+    my ($self, %args) = @_;
+
+    if ( my $input = $args{input} ) {
+        my $message = $input->{message};
         $self->_process->write( $message );
 
         return [ 200, [
             'Content-Type' => 'text/plain; charset=utf-8',
             'Access-Control-Allow-Origin' => '*',
-        ], [ "got: $message" ] ];
-
+        ], [ "ACK" ] ];
     } else {
         return sub {
             my $respond = shift;
@@ -93,10 +115,17 @@ sub respond {
             $self->handshake;
 
             $self->_process->add_client( $self );
+
+            $self->log->debug("Callback");
         }
     }
 }
 
+=method close
+
+Close connection to client
+
+=cut
 
 sub close {
     my $self = shift;

@@ -1,5 +1,6 @@
 
 package Clio::ClientOutputFilter::LineEnd;
+# ABSTRACT: Client output filter appending CRLF
 
 use Moo::Role;
 

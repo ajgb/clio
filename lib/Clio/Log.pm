@@ -1,5 +1,6 @@
 
 package Clio::Log;
+# ABSTRACT: Abstract base class for Clio::Log::* implementations
 
 use Moo;
 use Carp qw( croak );
@@ -8,7 +9,17 @@ with 'Clio::Role::HasContext';
 
 =head1 SYNOPSIS
 
-Base class for I<Clio::Log::*> implementations.
+    package Clio::Log::MyPackage;
+
+    use Moo;
+
+    extends qw( Clio::Log );
+
+    sub init { ... }
+
+    sub logger { ... }
+
+=head1 DESCRIPTION
 
 Consumes the L<Clio::Role::HasContext>.
 

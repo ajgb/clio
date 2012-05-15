@@ -1,5 +1,6 @@
 
-package Clio::Server::Socket::Client::Handle;
+package Clio::Server::TCP::Client::Handle;
+# ABSTRACT: Clio TCP Client
 
 use Moo;
 
@@ -7,6 +8,19 @@ extends qw(Clio::Client);
 
 use AnyEvent;
 use AnyEvent::Handle;
+
+=head1 DESCRIPTION
+
+Clio Server for handling clients connected over TCP socket.
+
+Extends the L<Clio::Client>.
+
+=attr fh
+
+Connection file handle
+
+=cut
+
 
 has 'fh' => (
     is => 'ro',
@@ -38,6 +52,12 @@ sub _build_handle {
     );
 }
 
+=method write
+
+Write client's message to handle.
+
+=cut
+
 sub write {
     my $self = shift;
 
@@ -45,6 +65,12 @@ sub write {
 
     $self->_handle->push_write( @_ );
 }
+
+=method attach_to_process
+
+Attach client to process and read from handle.
+
+=cut
 
 sub attach_to_process {
     my ($self, $process) = @_;
@@ -63,6 +89,12 @@ sub attach_to_process {
     $self->_handle->push_read( line => $reader );
 
 }
+
+=method close
+
+Close and destroy handle.
+
+=cut
 
 sub close {
     my $self = shift;

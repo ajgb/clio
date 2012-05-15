@@ -1,5 +1,6 @@
 
 package Clio::Role::UUIDMaker;
+# ABSTRACT: Role for creating UUID
 
 use Moo::Role;
 use Data::UUID;

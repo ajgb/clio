@@ -1,5 +1,6 @@
 
 package Clio::Server::HTTP::Client::WebSocket;
+# ABSTRACT: Clio HTTP Client for WebSocket connections
 
 use Moo;
 
@@ -11,41 +12,67 @@ use Data::Dumper;$Data::Dumper::Indent=1;
 
 extends qw( Clio::Server::HTTP::Client::Stream );
 
-has '_frame' => (
+=head1 DESCRIPTION
+
+Clio HTTP Server for handling clients connected over WebSocket.
+
+Extends the L<Clio::Server::HTTP::Client::Stream>.
+
+=attr version
+
+WebSocket version of connected client.
+
+=cut
+
+
+has 'version' => (
     is => 'rw',
 );
 
 require AnyEvent::Handle;
 AnyEvent::Handle::register_read_type(
     websocket => sub {
-        my ($self, $cb) = @_;
+        my ($self, $cb, $version) = @_;
         sub {
-            exists $_[0]{rbuf} or return;
-            $_[0]{rbuf} =~ s/^\x00([^\xff]*)\xff// or return;
+            exists $_[0]{rbuf} && length $_[0]{rbuf} or return;
 
-            $cb->($_[0], $1);
-            
+            my $frame = Protocol::WebSocket::Frame->new(
+                version => $version
+            );
+            $frame->append($_[0]{rbuf});
+
+            while (my $in = $frame->next) {
+                $cb->($_[0], $in);
+            }
+        
             return 1;
         }
     }
 );
 
+=method write
+
+Write client's message to process.
+
+=cut
+
 sub write {
     my $self = shift;
 
-    $self->log->trace("Client ", $self->id, " writing '@_'");
+    $self->log->trace("WebSocket Client ", $self->id, " writing '@_'");
 
-    $self->_frame->append( map { "\x00$_\xff" } @_ );
-
-    while (my $message = $self->_frame->next) {
-        my $msg = Protocol::WebSocket::Frame->new(
-            buffer => $message,
-            version => $self->_frame->version,
-        )->to_bytes;
-
-        $self->writer->push_write( $msg );
-    }
+    my $frame = Protocol::WebSocket::Frame->new(
+        version =>  $self->version,
+    );
+    $frame->append(@_);
+    $self->writer->push_write( $frame->to_bytes );
 }
+
+=method respond
+
+Returns response callback for handling client communication.
+
+=cut
 
 sub respond {
     my $self = shift;
@@ -73,13 +100,10 @@ sub respond {
             $self->_handle_client_error($message);
         });
 
-        $self->_frame(
-            Protocol::WebSocket::Frame->new(
-                version => $hs->version
-            )
-        );
+        $self->version( $hs->version );
 
         # handshake
+        $self->log->trace("Sending handshake (version: ", $hs->version,"): ", $hs->to_string, " to client: ", $self->id);
         $self->writer->push_write($hs->to_string);
 
         $self->_process->add_client( $self );
@@ -89,9 +113,9 @@ sub respond {
             
             $self->_process->write( $message );
 
-            $h->push_read( websocket => $reader );
+            $h->push_read( websocket => $self->version => $reader );
         };
-        $h->push_read( websocket => $reader );
+        $h->push_read( websocket => $self->version => $reader );
     };
 };
 

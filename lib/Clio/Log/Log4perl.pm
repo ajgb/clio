@@ -1,14 +1,13 @@
 
 package Clio::Log::Log4perl;
+# ABSTRACT: Log4perl log implementation
 
 use Moo;
 use Log::Log4perl qw( get_logger );
 
 extends qw( Clio::Log );
 
-=head1 SYNOPSIS
-
-Log4perl log implementation.
+=head1 DESCRIPTION
 
 Logging classes are not to be used directly, but via L<Clio> context, as in:
 
@@ -48,6 +47,16 @@ sub logger {
 
     return get_logger(@_);
 }
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<Log4perl>
+
+=back
+
+=cut
 
 
 1;

@@ -1,5 +1,6 @@
 
 package Clio::ProcessInputFilter::LineEnd;
+# ABSTRACT: Process input filter appending LF
 
 use Moo::Role;
 

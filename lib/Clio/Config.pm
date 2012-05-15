@@ -1,13 +1,26 @@
 
 package Clio::Config;
+# ABSTRACT: Config loader class
 
 use Moo;
 
 use Config::Any;
+use Config::General;
 use Carp qw( croak );
 use Class::Load ();
 
 use Role::Tiny ();
+
+=head1 DESCRIPTION
+
+Load and parse configuration options for L<Clio>.
+
+=attr config_file
+
+Required path to config file.
+
+=cut
+
 
 has 'config_file' => (
     is => 'ro',
@@ -19,42 +32,102 @@ has '_config' => (
     init_arg => undef,
 );
 
+=attr run_as_user_group
+
+Returns user/group used to run Clio.
+
+=cut
+
 has 'run_as_user_group' => (
     is => 'rw',
     init_arg => undef,
 );
+
+=attr server_class
+
+Package used as server.
+
+=cut
 
 has 'server_class' => (
     is => 'rw',
     init_arg => undef,
 );
 
-has 'server_client_class' => (
-    is => 'rw',
-    init_arg => undef,
-);
+=attr logger_class
 
-has 'server_host_port' => (
-    is => 'rw',
-    init_arg => undef,
-);
-has 'ServerConfig' => (
-    is => 'rw',
-    init_arg => undef,
-);
-has 'CommandConfig' => (
-    is => 'rw',
-    init_arg => undef,
-);
-has 'ServerClientConfig' => (
-    is => 'rw',
-    init_arg => undef,
-);
+Package used for logging.
+
+=cut
 
 has 'logger_class' => (
     is => 'rw',
     init_arg => undef,
 );
+
+
+=attr server_client_class
+
+Package used as client for given server.
+
+=cut
+
+has 'server_client_class' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr server_host_port
+
+Listening host/port.
+
+=cut
+
+has 'server_host_port' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr ServerConfig
+
+I<E<lt>ServerE<gt>> config holder.
+
+=cut
+
+
+has 'ServerConfig' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr CommandConfig
+
+I<E<lt>CommandE<gt>> config holder.
+
+=cut
+
+has 'CommandConfig' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr ServerClientConfig
+
+I<E<lt>Server/ClientE<gt>> config holder.
+
+=cut
+
+has 'ServerClientConfig' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr LogConfig
+
+I<E<lt>LogE<gt>> config holder.
+
+=cut
+
 has 'LogConfig' => (
     is => 'rw',
     init_arg => undef,
@@ -63,23 +136,29 @@ has 'LogConfig' => (
 sub BUILD {
     my $self = shift;
     
-    my $conf = Config::Any->load_files(
-        {
-            files => [ $self->config_file ],
-            use_ext => 1,
-            flatten_to_hash => 1,
-            driver_args => {
-                General => {
-                    -UseApacheInclude => 1,
-                    -IncludeRelative => 1,
-                    -IncludeDirectories => 1,
-                    -IncludeGlob => 1,
+    eval {
+        my $conf = Config::Any->load_files(
+            {
+                files => [ $self->config_file ],
+                use_ext => 1,
+                flatten_to_hash => 1,
+                driver_args => {
+                    General => {
+                        -UseApacheInclude => 1,
+                        -IncludeRelative => 1,
+                        -IncludeDirectories => 1,
+                        -IncludeGlob => 1,
+                    },
                 },
             },
-        },
-    );
+        );
 
-    $self->_config( $conf->{ $self->config_file } );
+        $self->_config( $conf->{ $self->config_file } );
+    };
+    if (my $e = $@) {
+        $e =~ s/ at .+? line \d+\.//;
+        die "$e";
+    }
 }
 
 sub _validate {
@@ -108,6 +187,12 @@ sub _validate {
     die "<Command>Exec is required in $cfile\n"
         unless defined $self->_config->{Command}->{Exec};
 }
+
+=method process
+
+Process L<"config_file">.
+
+=cut
 
 sub process {
     my $self = shift;

@@ -1,5 +1,6 @@
 
 package Clio::Role::HasManager;
+# ABSTRACT: Role for providing manager object
 
 use Moo::Role;
 
