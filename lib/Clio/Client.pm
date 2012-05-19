@@ -1,7 +1,8 @@
 
 package Clio::Client;
-# ABSTRACT: Base class for Clio::Client::* implementations
+# ABSTRACT: Base abstract class for Clio::Client::* implementations
 
+use strict;
 use Moo;
 use Carp qw( croak );
 
@@ -9,17 +10,16 @@ with 'Clio::Role::HasManager';
 
 =head1 DESCRIPTION
 
-Base class for I<Clio::Client::*> implementations.
+Base abstract class for I<Clio::Client::*> implementations.
+
+Can be wrapped with C<InputFilter>s and C<OutputFilter>s defined in
+I<E<lt>Server/ClientE<gt>> block.
 
 Consumes the L<Clio::Role::HasManager>.
 
 =cut
 
 =attr id
-
-    $client = Clio::Client::Implementation->new(
-        id => $uuid
-    );
 
 Required read-only client identifier.
 
@@ -96,11 +96,8 @@ sub disconnect {
     $self->close;
 }
 
-=method restore
 
-=cut
-
-sub restore {
+sub _restore {
     my ($self, %args) = @_;
 
     $self->$_( $args{$_} ) for keys %args;

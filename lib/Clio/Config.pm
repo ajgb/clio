@@ -1,7 +1,8 @@
 
 package Clio::Config;
-# ABSTRACT: Config loader class
+# ABSTRACT: Config loader
 
+use strict;
 use Moo;
 
 use Config::Any;
@@ -39,6 +40,17 @@ Returns user/group used to run Clio.
 =cut
 
 has 'run_as_user_group' => (
+    is => 'rw',
+    init_arg => undef,
+);
+
+=attr pid_file
+
+Path to pid file.
+
+=cut
+
+has 'pid_file' => (
     is => 'rw',
     init_arg => undef,
 );
@@ -90,7 +102,7 @@ has 'server_host_port' => (
 
 =attr ServerConfig
 
-I<E<lt>ServerE<gt>> config holder.
+Stores I<E<lt>ServerE<gt>> config.
 
 =cut
 
@@ -102,7 +114,7 @@ has 'ServerConfig' => (
 
 =attr CommandConfig
 
-I<E<lt>CommandE<gt>> config holder.
+Stores I<E<lt>CommandE<gt>> config.
 
 =cut
 
@@ -113,7 +125,7 @@ has 'CommandConfig' => (
 
 =attr ServerClientConfig
 
-I<E<lt>Server/ClientE<gt>> config holder.
+Stores I<E<lt>Server/ClientE<gt>> config.
 
 =cut
 
@@ -124,7 +136,7 @@ has 'ServerClientConfig' => (
 
 =attr LogConfig
 
-I<E<lt>LogE<gt>> config holder.
+Stores I<E<lt>LogE<gt>> config.
 
 =cut
 
@@ -199,10 +211,7 @@ sub process {
 
     $self->_validate();
 
-    $self->run_as_user_group(
-        [ @{$self->_config}{qw(User Group)} ]
-    );
-
+    $self->_process_daemon();
     $self->_process_command();
     $self->_process_server();
     $self->_process_log();
@@ -289,6 +298,20 @@ sub _load_io_filters {
     }
 };
 
+sub _process_daemon {
+    my $self = shift;
+
+    my $config = $self->_config->{Daemon};
+
+    $self->run_as_user_group(
+        [ @{$config}{qw(User Group)} ]
+    );
+
+    $self->pid_file( $config->{PidFile} );
+}
+
+
+
 sub _process_command {
     my $self = shift;
 
@@ -319,6 +342,11 @@ sub _process_server_client {
         config => $config
     );
 }
+
+=for Pod::Coverage
+BUILD
+
+=cut
 
 1;
 

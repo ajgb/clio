@@ -2,6 +2,7 @@
 package Clio::Server::TCP::Client::Handle;
 # ABSTRACT: Clio TCP Client
 
+use strict;
 use Moo;
 
 extends qw(Clio::Client);
@@ -11,9 +12,9 @@ use AnyEvent::Handle;
 
 =head1 DESCRIPTION
 
-Clio Server for handling clients connected over TCP socket.
+Clio package for handling clients connected over TCP socket.
 
-Extends the L<Clio::Client>.
+Extends L<Clio::Client>.
 
 =attr fh
 
@@ -68,7 +69,7 @@ sub write {
 
 =method attach_to_process
 
-Attach client to process and read from handle.
+Attach client to process.
 
 =cut
 

@@ -2,28 +2,26 @@
 package Clio::Server::HTTP::Client::WebSocket;
 # ABSTRACT: Clio HTTP Client for WebSocket connections
 
+use strict;
 use Moo;
 
 use Protocol::WebSocket::Handshake::Server;
 use Protocol::WebSocket::Frame;
 use AnyEvent::Handle;
 
-use Data::Dumper;$Data::Dumper::Indent=1;
-
 extends qw( Clio::Server::HTTP::Client::Stream );
 
 =head1 DESCRIPTION
 
-Clio HTTP Server for handling clients connected over WebSocket.
+Clio HTTP package for handling clients connected over WebSockets.
 
-Extends the L<Clio::Server::HTTP::Client::Stream>.
+Extends L<Clio::Server::HTTP::Client::Stream>.
 
 =attr version
 
 WebSocket version of connected client.
 
 =cut
-
 
 has 'version' => (
     is => 'rw',
@@ -34,12 +32,12 @@ AnyEvent::Handle::register_read_type(
     websocket => sub {
         my ($self, $cb, $version) = @_;
         sub {
-            exists $_[0]{rbuf} && length $_[0]{rbuf} or return;
+            exists $_[0]{rbuf} or return;
 
             my $frame = Protocol::WebSocket::Frame->new(
+                buffer => delete $_[0]{rbuf},
                 version => $version
             );
-            $frame->append($_[0]{rbuf});
 
             while (my $in = $frame->next) {
                 $cb->($_[0], $in);
@@ -59,7 +57,7 @@ Write client's message to process.
 sub write {
     my $self = shift;
 
-    $self->log->trace("WebSocket Client ", $self->id, " writing '@_'");
+    $self->log->trace("WebSocket client ", $self->id, " writing '@_'");
 
     my $frame = Protocol::WebSocket::Frame->new(
         version =>  $self->version,

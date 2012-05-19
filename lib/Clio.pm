@@ -2,22 +2,65 @@
 package Clio;
 # ABSTRACT: Command Line Input/Output with sockets and HTTP
 
+use strict;
 use Moo;
 
 use Clio::Config;
 use Clio::ProcessManager;
 
-use DDP;
+use Net::Server::Daemonize qw(daemonize);
+
+=head1 DESCRIPTION
+
+Clio will allow you to connect to your command line utilities over network
+socket and HTTP.
+
+Please see L<clio> for configuration options and usage.
+
+=head1 INSTALLATION
+
+    cpanm Clio
+
+=attr config_file
+
+Path to Clio config file.
+
+Required.
+
+=cut
+
+has 'config_file' => (
+    is => 'ro',
+    required => 1,
+);
+
+=attr config
+
+L<Clio::Config> object.
+
+=cut
 
 has 'config' => (
     is => 'lazy',
     init_arg => undef,
 );
 
+=attr process_manager
+
+L<Clio::ProcessManager> object.
+
+=cut
+
 has 'process_manager' => (
     is => 'lazy',
     init_arg => undef,
 );
+
+=attr server
+
+Server object of class specified in configuration.
+
+=cut
 
 has 'server' => (
     is => 'lazy',
@@ -30,18 +73,12 @@ has '_logger' => (
     builder => '_build_logger',
 );
 
-has 'config_file' => (
-    is => 'ro',
-    required => 1,
-);
-
 sub _build_config {
     my $self = shift;
 
     my $config = Clio::Config->new(
         config_file => $self->config_file
     );
-#    print p($config);
 
     return $config;
 }
@@ -80,20 +117,34 @@ sub BUILD {
     my $self = shift;
 
     $self->config->process;
-
-    $self->_set_user_group();
-
-    $self->process_manager->start;
 };
+
+=method run
+
+Daemonizes if required by configuration.
+
+Starts L<"process_mananager"> and L<"server">.
+
+=cut
+
 
 sub run {
     my $self = shift;
 
-    $self->log->debug("About to start");
+    $self->_daemonize();
+
+    $self->process_manager->start;
 
     $self->server->start;
 };
 
+=method log
+
+    my $logger = $c->log( $caller);
+
+Returns logger object of class specified by configuration.
+
+=cut
 
 sub log {
     my $self = shift;
@@ -102,28 +153,27 @@ sub log {
     $self->_logger->logger($caller);
 }
 
-sub _set_user_group {
+sub _daemonize {
     my $self = shift;
 
     my $log_method;
 
     my ($user, $group) = @{ $self->config->run_as_user_group };
 
+    return unless defined $user && defined $group;
+
     # set user
-    $user = (getpwuid($<))[0] unless defined $user;
     my $uid = $user =~ /\A\d+\z/ ? $user : getpwnam($user);
 
-    $< = $> = $uid;
-    $log_method = $! ? "error" : "debug";
-    $self->log->$log_method("Setting user to $uid", ( $! ? " failed: $!" : ''));
-
     # set group
-    $group = (getpwuid($<))[3] unless defined $group;
     my $gid = $group =~ /\A\d+\z/ ? $group : getgrnam($group);
 
-    $( = $) = $gid;
-    $log_method = $! ? "error" : "debug";
-    $self->log->$log_method("Setting group to $gid", ( $! ? " failed: $!" : ''));
+    daemonize( $uid, $gid, $self->config->pid_file );
 }
+
+=for Pod::Coverage
+BUILD
+
+=cut
 
 1;

@@ -1,7 +1,8 @@
 
 package Clio::Server::HTTP;
-# ABSTRACT: Base class for Clio HTTP Server (Plack based)
+# ABSTRACT: Clio HTTP Server
 
+use strict;
 use Moo;
 
 use AnyEvent;
@@ -9,19 +10,17 @@ use Twiggy::Server;
 use Plack::Request;
 use Plack::Util;
 
-use Data::Dumper;$Data::Dumper::Indent=1;
-
 extends qw( Clio::Server );
 
 with 'Clio::Role::UUIDMaker';
 
 =head1 DESCRIPTION
 
-Clio HTTP server.
-
-Consumes the L<Clio::Role::UUIDMaker>.
+PSGI HTTP server using L<Twiggy>.
 
 Extends the L<Clio::Server>.
+
+Consumes the L<Clio::Role::UUIDMaker>.
 
 =method start
 
@@ -63,12 +62,13 @@ sub build_app {
         $app = $wrapper->($app);
     }
 
+    $DB::single=1;
     return $app;
 }
 
 =method to_app
 
-Creates Plack application.
+Creates PSGI application.
 
 =cut
 
@@ -81,13 +81,11 @@ sub to_app {
         my ($env) = @_;
 
         my $req = Plack::Request->new( $env );
-        print Dumper($env);
 
         my %proc_manager_args;
         my $post_data;
         if ( $req->method eq 'POST' ) {
             $post_data = $req->body_parameters;
-            print "post_data: ", Dumper($post_data), "\n";
             $proc_manager_args{client_id} = $post_data->{'metadata.id'}
                 if exists $post_data->{'metadata.id'};
         }
@@ -120,6 +118,7 @@ sub to_app {
         ], [ "No engines available" ] ];
     }
 }
+
 
 1;
 

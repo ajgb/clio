@@ -1,7 +1,8 @@
 
 package Clio::Server;
-# ABSTRACT: Base class for Clio::Server::* implementations
+# ABSTRACT: Base abstract class for Clio::Server::* implementations
 
+use strict;
 use Moo;
 use Carp qw( croak );
 use Clio::Server::ClientsManager;
@@ -10,7 +11,7 @@ with 'Clio::Role::HasContext';
 
 =head1 DESCRIPTION
 
-Base class for I<Clio::Server::*> implementations.
+Base abstract class for I<Clio::Server::*> implementations.
 
 Consumes the L<Clio::Role::HasContext>.
 

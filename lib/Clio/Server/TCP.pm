@@ -1,25 +1,38 @@
 
 package Clio::Server::TCP;
-# ABSTRACT: Base class for Clio TCP Server
+# ABSTRACT: Clio TCP Server
 
+use strict;
 use Moo;
 
 use AnyEvent;
 use AnyEvent::Socket qw( tcp_server );
 
-use Data::Dumper;$Data::Dumper::Indent=1;
-
 extends qw( Clio::Server );
 
 with 'Clio::Role::UUIDMaker';
 
+=head1 SYNOPSIS
+
+    # TCP socket server
+    <Server>
+        Listen 0:12346
+
+        Class TCP
+        <Client>
+            Class Handle
+
+            OutputFilter LineEnd
+        </Client>
+    </Server>
+
 =head1 DESCRIPTION
 
-Clio TCP server.
-
-Consumes the L<Clio::Role::UUIDMaker>.
+Starts TCP server on specified host/port.
 
 Extends the L<Clio::Server>.
+
+Consumes the L<Clio::Role::UUIDMaker>.
 
 =method start
 
@@ -37,7 +50,6 @@ sub start {
     my $listen = $config->server_host_port;
 
     my $clients_manager = $self->clients_manager;
-#    print Dumper($config),"\n";
 
     my $guard = tcp_server $listen->{host}, $listen->{port}, sub {
         my ($fh, $host, $port) = @_;

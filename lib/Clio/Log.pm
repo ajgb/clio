@@ -2,6 +2,7 @@
 package Clio::Log;
 # ABSTRACT: Abstract base class for Clio::Log::* implementations
 
+use strict;
 use Moo;
 use Carp qw( croak );
 
@@ -20,6 +21,13 @@ with 'Clio::Role::HasContext';
     sub logger { ... }
 
 =head1 DESCRIPTION
+
+Base abstract class for Clio::Log::* implementations.
+
+Logging classes are not to be used directly, but via L<Clio> context, as in:
+
+    $c->log->trace( ... );
+    $c->log->debug( ... );
 
 Consumes the L<Clio::Role::HasContext>.
 
@@ -41,11 +49,24 @@ sub init { croak "Abstract method"; }
 
 =method logger
 
-Abstract method which should return the log object.
+Abstract method which should return the logger object.
 
 =cut
 
 sub logger { croak "Abstract method"; }
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<Clio::Log::Log4perl>
+
+=back
+
+=for Pod::Coverage
+BUILD
+
+=cut
 
 1;
 

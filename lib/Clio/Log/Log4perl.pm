@@ -2,6 +2,7 @@
 package Clio::Log::Log4perl;
 # ABSTRACT: Log4perl log implementation
 
+use strict;
 use Moo;
 use Log::Log4perl qw( get_logger );
 
@@ -9,16 +10,14 @@ extends qw( Clio::Log );
 
 =head1 DESCRIPTION
 
-Logging classes are not to be used directly, but via L<Clio> context, as in:
-
-    $c->log->trace( ... );
-    $c->log->debug( ... );
+Implement L<Log::Log4perl> as logging class.
 
 =cut
 
 =method init
 
-Called during start of application, initializes the logger.
+Called during start of application, initializes the logger with
+E<lt>LogE<gt>/E<lt>Config<gt> text.
 
 =cut
 
@@ -38,7 +37,7 @@ sub init {
 
 =method logger
 
-Returns the logger (caller aware).
+Returns the logger.
 
 =cut
 
@@ -47,16 +46,6 @@ sub logger {
 
     return get_logger(@_);
 }
-
-=head1 SEE ALSO
-
-=over 4
-
-=item * L<Log4perl>
-
-=back
-
-=cut
 
 
 1;

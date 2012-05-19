@@ -2,6 +2,7 @@
 package Clio::Process;
 # ABSTRACT: Process wrapper
 
+use strict;
 use Moo;
 
 use AnyEvent;
@@ -21,6 +22,9 @@ with 'Clio::Role::HasManager';
 
 All processes are managed by the L<Clio::ProcessManager>. Process runs the
 C<$command> and writes to the connected clients the command output.
+
+Can be wrapped with C<InputFilter>s and C<OutputFilter>s defined in
+I<E<lt>CommandE<gt>> block.
 
 Consumes the L<Clio::Role::HasManager>.
 
@@ -61,10 +65,10 @@ has '_handle' => (
 
     $process->start;
 
-Starts the C<$self-E<gt>command> and passes the command output to the
+Starts the L<"command"> and passes the command output to the
 connected clients.
 
-On any error the process stops the command.
+On any error object will stop the command.
 
 =cut
 
@@ -81,14 +85,15 @@ sub start {
             priority => 19,
             on_error  => sub {
                 my ($handle, $fatal, $msg) = @_;
-                $log->fatal("Process ", $self->id, " error: $msg");
-                $self->manager->stop_process( $self->id );
+                my $pid = $self->id;
+                $log->fatal("Process $pid error: $msg");
+                $self->manager->stop_process( $pid );
             },
             on_eof  => sub {
                 my ($handle) = @_;
-                my $eid = $self->id;
-                $log->fatal("** [$eid]->ON_EOF **");
-                $self->manager->stop_process( $self->id );
+                my $pid = $self->id;
+                $log->fatal("Process $pid reached EOF");
+                $self->manager->stop_process( $pid );
             },
         )
     );
@@ -96,10 +101,12 @@ sub start {
     my $reader; $reader = sub {
         my ($handle, $line, $eol) = @_;
 
-        $log->trace("Process ", $self->id ," reading: '$line'");
+        my $pid = $self->id;
+
+        $log->trace("Process $pid reading: '$line'");
 
         for my $cid ( keys %{ $self->{_clients} } ) {
-            $log->trace("Process ", $self->id, " writing to client $cid");
+            $log->trace("Process $pid writing to client $cid");
             $self->_clients->{$cid}->write( $line );
         }
 

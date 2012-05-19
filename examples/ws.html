@@ -1,19 +1,16 @@
 <html>
     <head>
-        <title>Net-Command via AJAX</title>
+        <title>Clio with WebSockets</title>
         <script type="text/javascript" src="jquery-1.6.2.min.js"></script>
     </head>
     <body>
-        <!--
-        <h2>Net-Command</h2>
-        -->
         <div id="commands">
-            <form id="commands_form" onsubmit="return false">
+            <form id="commands_form" onsubmit="return send()">
                 <table>
                     <tr>
-                        <th>command:</th>
+                        <th>input:</th>
                         <th><input type="text" id="command_input"></th>
-                        <td><input type="button"
+                        <td><input type="submit"
                             id="command_button" value="Send"></td>
                     </tr>
                 </table>
@@ -24,34 +21,30 @@
             function msg(text) {
                 $('#output').prepend('<p>'+ text +'</p>');
             };
-            $(document).ready(function(){
-                var url = "ws://localhost:12345/";
+            var url = "ws://localhost:12345/";
+            var socket = new WebSocket(url);
 
-                var socket = new WebSocket(url);
+            function send() {
+                var cmd = $('#command_input').val();
+                msg(">> "+ cmd);
+                socket.send( cmd );
+
+                return false;
+            }
+
+            $(document).ready(function(){
                 socket.onopen = function() {
-                    console.log("Connection opened");
                     msg("Connection opened");
                 };
                 socket.onerror = function() {
-                    console.log("Connection error");
                     msg("Connection error");
                 };
                 socket.onclose = function() {
-                    console.log("Connection close");
-                    msg("Connection close");
+                    msg("Connection closed");
                 };
-
-
                 socket.onmessage = function(e) {
-                    console.log( e );
                     msg("<< "+ e.data);
                 };
-                $('#command_button').click(function(){
-                    var cmd = $('#command_input').val();
-                    console.log( cmd );
-                    msg(">> "+ cmd);
-                    socket.send( cmd );
-                });
             });
         </script>
     </head>

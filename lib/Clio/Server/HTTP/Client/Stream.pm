@@ -1,34 +1,34 @@
 
 package Clio::Server::HTTP::Client::Stream;
-# ABSTRACT: Clio HTTP Client for streaming/comet connections
+# ABSTRACT: Clio HTTP Client for streaming connections
 
+use strict;
 use Moo;
 
-use Data::Dumper;$Data::Dumper::Indent=1;
 use Scalar::Util qw( blessed );
 
 extends qw( Clio::Client );
 
 =head1 DESCRIPTION
 
+    # HTTP server with streaming clients
     <Server>
+        Listen 0:12345
+
         Class HTTP
+
         <Client>
             Class Stream
-            OutputFilter  LineEnd
+
+            OutputFilter LineEnd
         </Client>
     </Server>
 
 
-HTTP server with streaming (aka comet) capabilities.
+HTTP server with streaming capabilities.
 
 Process output is streamed directly to client - the above example can be used
 directly in a browser for read only data.
-
-To provide input POST with a C<message> as the key of incoming data.
-
-AJAX can be enabled with setting C<OutputFilter> to
-L<jQueryStream|Clio::ClientOutputFilter::jQueryStream>.
 
 Extends of L<Clio::Client>.
 
@@ -115,8 +115,6 @@ sub respond {
             $self->handshake;
 
             $self->_process->add_client( $self );
-
-            $self->log->debug("Callback");
         }
     }
 }
@@ -141,6 +139,20 @@ sub _handle_client_error {
     $self->log->error("Connection error for client $cid: $err_msg");
     $self->manager->disconnect_client( $cid );
 }
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<Clio::Server::HTTP::Client::WebSocket>
+
+WebSocket connections.
+
+=item * L<Clio::ClientOutputFilter::jQueryStream>
+
+Example HTML/JavaScript code in C<examples/ajax.html>.
+
+=back
 
 1;
 

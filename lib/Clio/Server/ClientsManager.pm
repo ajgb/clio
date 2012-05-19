@@ -2,17 +2,12 @@
 package Clio::Server::ClientsManager;
 # ABSTRACT: Clients manager
 
+use strict;
 use Moo;
 use Carp qw( croak );
 use Class::Load ();
 
 with 'Clio::Role::HasContext';
-
-=head1 SYNOPSIS
-
-    my $clients_manager = Clio::Server::ClientsManager->new(
-        c => $context,
-    );
 
 =head1 DESCRIPTION
 
@@ -65,11 +60,11 @@ sub new_client {
     my $uuid = delete $args{id};
 
     if ( my $client = $self->clients->{ $uuid } ) {
-        return $client->restore( %args );
+        return $client->_restore( %args );
     }
 
     my $client_class = $self->c->config->server_client_class;
-    $self->c->log->debug("Creating new client, class of $client_class");
+    $self->c->log->trace("Creating new client, class of $client_class");
     Class::Load::load_class($client_class);
 
     return $self->clients->{ $uuid } = $client_class->new(

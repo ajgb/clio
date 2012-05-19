@@ -1,20 +1,17 @@
 <html>
     <head>
-        <title>Net-Command via AJAX</title>
+        <title>Clio with AJAX</title>
         <script type="text/javascript" src="jquery-1.6.2.min.js"></script>
         <script type="text/javascript" src="jquery.stream-1.2.min.js"></script>
     </head>
     <body>
-        <!--
-        <h2>Net-Command</h2>
-        -->
         <div id="commands">
-            <form id="commands_form" onsubmit="return false">
+            <form id="commands_form" onsubmit="return send()">
                 <table>
                     <tr>
-                        <th>command:</th>
+                        <th>input:</th>
                         <th><input type="text" id="command_input"></th>
-                        <td><input type="button"
+                        <td><input type="submit"
                             id="command_button" value="Send"></td>
                     </tr>
                 </table>
@@ -25,15 +22,16 @@
             function msg(text) {
                 $('#output').prepend('<p>'+ text +'</p>');
             };
+            function send() {
+                var cmd = $('#command_input').val();
+                msg(">> "+ cmd);
+                $.stream().send({
+                    message: cmd
+                });
+                return false;
+            }
             $(document).ready(function(){
                 var url = "http://localhost:12345/";
-                $('#command_button').click(function(){
-                    var cmd = $('#command_input').val();
-                    console.log( cmd );
-                    $.stream().send({
-                        message: cmd
-                    });
-                });
                 $.stream.setup({
                     type: 'http',
                     enableXDR: true,
@@ -42,19 +40,15 @@
                 $.stream(url, {
                     dataType: "text",
                     open: function() {
-                        console.log("Connection opened");
                         msg("Connection opened");
                     },
                     message: function( output ) {
-                        //console.log("Connection message");
-                        msg(  output.data );
+                        msg(  "<< "+ output.data );
                     },
                     error: function() {
-                        console.log("Connection error");
                         msg("Connection error");
                     },
                     close: function() {
-                        console.log("Connection closed");
                         msg("Connection closed");
                     }
                 });

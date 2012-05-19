@@ -2,6 +2,7 @@
 package Clio::ProcessManager;
 # ABSTRACT: Process manager
 
+use strict;
 use Moo;
 
 use AnyEvent;
@@ -11,7 +12,7 @@ use Carp qw( croak );
 with 'Clio::Role::HasContext';
 with 'Clio::Role::UUIDMaker';
 
-=head1 SYNPOSIS
+=head1 SYNOPSIS
 
     my $process_manager = Clio::ProcessManager->new(
         c => $context,
@@ -76,7 +77,7 @@ has '_check_idle_loop' => (
         my $self = shift;
         AnyEvent->timer(
             after    => 2,
-            interval => 2,
+            interval => 1,
             cb       => sub {
                 $self->_idle_processes_maintenance();
             },
@@ -153,6 +154,9 @@ sub create_process {
     $process_manager->get_first_available( %args );
 
 Based on configuration returns first idle process or if none are availble creates a new one.
+
+If C<$args{client_id}> is present then process connected to this client will
+be returned.
 
 =cut
 
@@ -236,7 +240,7 @@ sub _idle_processes_maintenance {
     
     my $stopped_process = $process_manager->stop_process( $process_id );
 
-Stops process and managing it.
+Shutdowns process and stops managing it.
 
 =cut
 
