@@ -2,7 +2,7 @@ NAME
     Clio - Command Line Input/Output with sockets and HTTP
 
 VERSION
-    version 0.01
+    version 0.02
 
 DESCRIPTION
     Clio will allow you to connect to your command line utilities over
