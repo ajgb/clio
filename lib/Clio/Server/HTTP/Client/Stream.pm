@@ -154,5 +154,7 @@ Example HTML/JavaScript code in C<examples/ajax.html>.
 
 =back
 
+=cut
+
 1;
 

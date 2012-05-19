@@ -2,6 +2,9 @@ Revision history for Clio
 
 {{$NEXT}}
 
+    FIXES
+        Perldoc bug in Clio::Server::HTTP::Client::Stream
+
 0.01   2012-05-19 01:02:16
 
     First version
